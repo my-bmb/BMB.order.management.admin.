@@ -22,7 +22,9 @@ def generate_map_link(latitude, longitude):
 def format_currency(amount):
     """Format currency amount"""
     try:
-        amount_float = float(amount) if amount else 0
+        if amount is None:
+            return "₹0.00"
+        amount_float = float(amount)
         return f"₹{amount_float:,.2f}"
     except:
         return "₹0.00"
@@ -70,7 +72,7 @@ def get_time_period_dates(period):
         return datetime.min, datetime.now()
 
 def prepare_chart_data(orders_data, top_items, status_data):
-    """Prepare data for Chart.js charts"""
+    """Prepare data for Chart.js charts - RETURNS SIMPLE DICT"""
     try:
         # Orders timeline chart
         timeline_labels = []
@@ -78,19 +80,26 @@ def prepare_chart_data(orders_data, top_items, status_data):
         revenue_values = []
         
         for item in orders_data:
-            period = item['period']
+            period = item.get('period')
             if isinstance(period, datetime):
-                timeline_labels.append(format_ist_datetime(period, "%d %b %I:%M %p"))
+                # Use simple formatting without function calls
+                timeline_labels.append(period.strftime("%d %b %I:%M %p"))
             else:
                 timeline_labels.append(str(period))
             
-            timeline_values.append(item['order_count'])
-            revenue_values.append(float(item['total_revenue'] or 0))
+            timeline_values.append(item.get('order_count', 0))
+            revenue_values.append(float(item.get('total_revenue', 0) or 0))
+        
+        # Limit data points
+        if len(timeline_labels) > 20:
+            timeline_labels = timeline_labels[:20]
+            timeline_values = timeline_values[:20]
+            revenue_values = revenue_values[:20]
         
         timeline_chart = {
-            'labels': timeline_labels[:20],  # Limit to 20 points
-            'orders': timeline_values[:20],
-            'revenue': revenue_values[:20]
+            'labels': timeline_labels,
+            'orders': timeline_values,
+            'revenue': revenue_values
         }
         
         # Top items chart
@@ -99,14 +108,21 @@ def prepare_chart_data(orders_data, top_items, status_data):
         item_revenues = []
         
         for item in top_items:
-            item_labels.append(item['item_name'][:20] + ('...' if len(item['item_name']) > 20 else ''))
-            item_quantities.append(item['total_quantity'])
-            item_revenues.append(float(item['total_revenue'] or 0))
+            name = item.get('item_name', 'Unknown')
+            item_labels.append(name[:20] + ('...' if len(name) > 20 else ''))
+            item_quantities.append(item.get('total_quantity', 0))
+            item_revenues.append(float(item.get('total_revenue', 0) or 0))
+        
+        # Limit to 10 items
+        if len(item_labels) > 10:
+            item_labels = item_labels[:10]
+            item_quantities = item_quantities[:10]
+            item_revenues = item_revenues[:10]
         
         items_chart = {
-            'labels': item_labels[:10],  # Limit to 10 items
-            'quantities': item_quantities[:10],
-            'revenues': item_revenues[:10]
+            'labels': item_labels,
+            'quantities': item_quantities,
+            'revenues': item_revenues
         }
         
         # Status distribution chart
@@ -122,8 +138,9 @@ def prepare_chart_data(orders_data, top_items, status_data):
         }
         
         for item in status_data:
-            status_labels.append(item['status'].title())
-            status_values.append(item['count'])
+            status = item.get('status', 'unknown')
+            status_labels.append(status.title())
+            status_values.append(item.get('count', 0))
         
         status_chart = {
             'labels': status_labels,
@@ -138,6 +155,7 @@ def prepare_chart_data(orders_data, top_items, status_data):
         }
     except Exception as e:
         print(f"⚠️ Chart data error: {e}")
+        traceback.print_exc()
         return {
             'timeline': {'labels': [], 'orders': [], 'revenue': []},
             'items': {'labels': [], 'quantities': [], 'revenues': []},
