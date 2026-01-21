@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+
+{% block title %}Customers - Bite Me Buddy Admin{% endblock %}
+
+{% block page_title %}Customers Management{% endblock %}
+{% block page_subtitle %}View and manage all customers{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="table-container mb-4">
+    <div class="p-3">
+        <form id="search-form" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control" id="search-input" 
+                       placeholder="Search by Name, Phone, or Email..."
+                       value="{{ current_search }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Customers Table -->
+<div class="table-container">
+    <div class="table-header">
+        <h3>
+            <i class="fas fa-users mr-2"></i>
+            Customers ({{ total }} total)
+        </h3>
+    </div>
+    
+    {% if customers %}
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Location</th>
+                        <th>Orders</th>
+                        <th>Total Spent</th>
+                        <th>Last Order</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ customer.profile_pic or url_for('static', filename='img/default-avatar.png') }}" 
+                                     alt="{{ customer.full_name }}" 
+                                     class="rounded-circle mr-2" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <div>
+                                    <strong>{{ customer.full_name }}</strong><br>
+                                    <small class="text-muted">{{ customer.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ customer.phone }}</td>
+                        <td>
+                            {% if customer.city and customer.state %}
+                                {{ customer.city }}, {{ customer.state }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-primary">{{ customer.total_orders or 0 }}</span>
+                        </td>
+                        <td><strong>{{ customer.total_spent_formatted or '₹0.00' }}</strong></td>
+                        <td>
+                            {% if customer.last_order_date_formatted %}
+                                <small>{{ customer.last_order_date_formatted }}</small>
+                            {% else %}
+                                <span class="text-muted">No orders</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ customer.created_at_formatted }}</small>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'success' if customer.is_active else 'danger' }}">
+                                {{ 'Active' if customer.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="p-3 border-top">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" 
+                           href="{{ url_for('admin_customers', page=page-1, search=current_search) }}">
+                            Previous
+                        </a>
+                    </li>
+                    
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p >= page-2 and p <= page+2 %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" 
+                               href="{{ url_for('admin_customers', page=p, search=current_search) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" 
+                           href="{{ url_for('admin_customers', page=page+1, search=current_search) }}">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h4>No customers found</h4>
+            <p class="text-muted">
+                {% if current_search %}
+                    No customers match your search. Try different keywords.
+                {% else %}
+                    No customers registered yet.
+                {% endif %}
+            </p>
+            {% if current_search %}
+                <a href="{{ url_for('admin_customers') }}" class="btn btn-primary">
+                    Clear Search
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

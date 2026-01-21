@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Bite Me Buddy Admin{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ session.get('admin_username', 'Admin') }}{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon orders">
+            <i class="fas fa-shopping-bag"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ today_stats.total_orders or 0 }}</h3>
+            <p>Today's Orders</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon revenue">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ format_currency(today_stats.total_revenue or 0) }}</h3>
+            <p>Today's Revenue</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon customers">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ customer_stats.new_customers or 0 }}</h3>
+            <p>New Customers Today</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon pending">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ pending_stats.pending or 0 }}</h3>
+            <p>Pending Orders</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Today's Orders -->
+    <div class="col-lg-8">
+        <div class="table-container">
+            <div class="table-header">
+                <h3><i class="fas fa-calendar-day mr-2"></i>Today's Orders</h3>
+                <div class="table-actions">
+                    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline">
+                        View All Orders
+                    </a>
+                </div>
+            </div>
+            
+            {% if todays_orders %}
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in todays_orders %}
+                            <tr>
+                                <td><strong>#{{ order.order_id }}</strong></td>
+                                <td>
+                                    <div>
+                                        <strong>{{ order.user_name }}</strong><br>
+                                        <small class="text-muted">{{ order.user_phone }}</small>
+                                    </div>
+                                </td>
+                                <td>{{ order.item_count }} items</td>
+                                <td><strong>{{ format_currency(order.total_amount) }}</strong></td>
+                                <td>
+                                    <span class="badge badge-{{ get_status_badge(order.status) }}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ format_ist_datetime(order.order_date, "%I:%M %p") }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline view-order-details" 
+                                                data-order-id="{{ order.order_id }}"
+                                                data-toggle="tooltip" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline view-payment-details" 
+                                                data-order-id="{{ order.order_id }}"
+                                                data-toggle="tooltip" title="Payment">
+                                            <i class="fas fa-credit-card"></i>
+                                        </button>
+                                        <button class="btn btn-outline view-customer-details" 
+                                                data-order-id="{{ order.order_id }}"
+                                                data-toggle="tooltip" title="Customer">
+                                            <i class="fas fa-user"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                    <h4>No orders today</h4>
+                    <p class="text-muted">No orders have been placed today</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="col-lg-4">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie mr-2"></i>Order Status</h3>
+            </div>
+            <canvas id="status-distribution-chart" 
+                    data-chart='{{ chart_data.status|tojson|safe }}'></canvas>
+        </div>
+        
+        <div class="table-container mt-4">
+            <div class="table-header">
+                <h3><i class="fas fa-chart-line mr-2"></i>Quick Stats</h3>
+            </div>
+            <div class="p-3">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Total Orders Today:</td>
+                        <td class="text-right"><strong>{{ today_stats.total_orders or 0 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Total Revenue Today:</td>
+                        <td class="text-right"><strong>{{ format_currency(today_stats.total_revenue or 0) }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Average Order Value:</td>
+                        <td class="text-right"><strong>{{ format_currency(today_stats.avg_order_value or 0) }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>New Customers Today:</td>
+                        <td class="text-right"><strong>{{ customer_stats.new_customers or 0 }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Pending Orders:</td>
+                        <td class="text-right"><strong>{{ pending_stats.pending or 0 }}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="table-container mt-4">
+            <div class="table-header">
+                <h3><i class="fas fa-fire mr-2"></i>Top Items Today</h3>
+            </div>
+            <div class="p-3">
+                {% if stats.top_items %}
+                    {% for item in stats.top_items[:5] %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ item.item_name[:20] }}{% if item.item_name|length > 20 %}...{% endif %}</strong>
+                            <small class="d-block text-muted">{{ item.item_type }}</small>
+                        </div>
+                        <div class="text-right">
+                            <span class="badge badge-primary">{{ item.total_quantity }} sold</span><br>
+                            <small>{{ format_currency(item.total_revenue) }}</small>
+                        </div>
+                    </div>
+                    {% if not loop.last %}<hr class="my-2">{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-0">No items sold today</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line mr-2"></i>Orders & Revenue Today</h3>
+            </div>
+            <canvas id="orders-timeline-chart" 
+                    data-chart='{{ chart_data.timeline|tojson|safe }}'></canvas>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-bar mr-2"></i>Top Items Today</h3>
+            </div>
+            <canvas id="top-items-chart" 
+                    data-chart='{{ chart_data.items|tojson|safe }}'></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Refresh dashboard every 60 seconds
+    setInterval(function() {
+        window.location.reload();
+    }, 60000);
+</script>
+{% endblock %}

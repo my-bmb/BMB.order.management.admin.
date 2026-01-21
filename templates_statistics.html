@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+
+{% block title %}Statistics - Bite Me Buddy Admin{% endblock %}
+
+{% block page_title %}Statistics & Analytics{% endblock %}
+{% block page_subtitle %}View detailed statistics and analytics{% endblock %}
+
+{% block content %}
+<!-- Time Period Filter -->
+<div class="table-container mb-4">
+    <div class="p-3">
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline time-period-btn" data-period="today">
+                Today
+            </button>
+            <button class="btn btn-outline time-period-btn" data-period="week">
+                This Week
+            </button>
+            <button class="btn btn-outline time-period-btn" data-period="month">
+                This Month
+            </button>
+            <button class="btn btn-outline time-period-btn" data-period="last_month">
+                Last Month
+            </button>
+            <button class="btn btn-outline time-period-btn" data-period="">
+                All Time
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon orders">
+            <i class="fas fa-shopping-bag"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ stats.totals.total_orders or 0 }}</h3>
+            <p>Total Orders</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon revenue">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ stats.totals.total_revenue_formatted or '₹0.00' }}</h3>
+            <p>Total Revenue</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon customers">
+            <i class="fas fa-tag"></i>
+        </div>
+        <div class="stat-info">
+            <h3>{{ stats.totals.avg_order_value_formatted or '₹0.00' }}</h3>
+            <p>Avg. Order Value</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-line mr-2"></i>Orders & Revenue Trend</h3>
+            </div>
+            <canvas id="orders-timeline-chart" 
+                    data-chart='{{ chart_data.timeline|tojson|safe }}'></canvas>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie mr-2"></i>Order Status Distribution</h3>
+            </div>
+            <canvas id="status-distribution-chart" 
+                    data-chart='{{ chart_data.status|tojson|safe }}'></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-12">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-bar mr-2"></i>Top Selling Items</h3>
+            </div>
+            <canvas id="top-items-chart" 
+                    data-chart='{{ chart_data.items|tojson|safe }}'></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Top Items Table -->
+<div class="table-container mt-4">
+    <div class="table-header">
+        <h3><i class="fas fa-fire mr-2"></i>Top 10 Selling Items</h3>
+    </div>
+    
+    {% if stats.top_items %}
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Quantity Sold</th>
+                        <th>Total Revenue</th>
+                        <th>Average Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stats.top_items[:10] %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.item_name }}</strong><br>
+                            <small class="text-muted">{{ item.item_description[:50] if item.item_description else '' }}{% if item.item_description and item.item_description|length > 50 %}...{% endif %}</small>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'info' if item.item_type == 'service' else 'success' }}">
+                                {{ item.item_type }}
+                            </span>
+                        </td>
+                        <td><strong>{{ item.total_quantity }}</strong></td>
+                        <td><strong>{{ format_currency(item.total_revenue) }}</strong></td>
+                        <td>
+                            {% if item.total_quantity > 0 %}
+                                {{ format_currency(item.total_revenue / item.total_quantity) }}
+                            {% else %}
+                                {{ format_currency(0) }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <h4>No sales data available</h4>
+            <p class="text-muted">No items have been sold in this time period</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set active time period button
+    $('.time-period-btn').each(function() {
+        if ($(this).data('period') === '{{ time_period }}') {
+            $(this).removeClass('btn-outline').addClass('btn-primary');
+        }
+    });
+    
+    // Refresh charts when changing time period
+    $('.time-period-btn').click(function() {
+        showLoading('Loading statistics...');
+    });
+</script>
+{% endblock %}

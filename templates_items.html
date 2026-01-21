@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block title %}Items Management - Bite Me Buddy Admin{% endblock %}
+
+{% block page_title %}Items Management{% endblock %}
+{% block page_subtitle %}Manage services and menu items{% endblock %}
+
+{% block content %}
+<!-- Tabs -->
+<div class="table-container mb-4">
+    <div class="p-3">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('admin_items', type='services') }}" 
+               class="btn {% if item_type == 'services' %}btn-primary{% else %}btn-outline{% endif %}">
+                <i class="fas fa-concierge-bell"></i> Services
+            </a>
+            <a href="{{ url_for('admin_items', type='menu') }}" 
+               class="btn {% if item_type == 'menu' %}btn-primary{% else %}btn-outline{% endif %}">
+                <i class="fas fa-utensils"></i> Menu Items
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="table-container mb-4">
+    <div class="p-3">
+        <form id="search-form" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" class="form-control" id="search-input" 
+                       placeholder="Search {{ 'services' if item_type == 'services' else 'menu items' }}..."
+                       value="{{ current_search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Items Table -->
+<div class="table-container">
+    <div class="table-header">
+        <h3>
+            <i class="fas fa-{{ 'concierge-bell' if item_type == 'services' else 'utensils' }} mr-2"></i>
+            {{ 'Services' if item_type == 'services' else 'Menu Items' }} ({{ items|length }} total)
+        </h3>
+    </div>
+    
+    {% if items %}
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Discount</th>
+                        <th>Final Price</th>
+                        <th>Orders</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ item.photo_url }}" 
+                                     alt="{{ item.name }}" 
+                                     class="rounded mr-2" 
+                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                <div>
+                                    <strong>{{ item.name }}</strong><br>
+                                    <small class="text-muted">{{ item.description[:50] }}{% if item.description|length > 50 %}...{% endif %}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ item.category }}</td>
+                        <td><strong>{{ item.price_formatted }}</strong></td>
+                        <td>
+                            {% if item.discount > 0 %}
+                                <span class="badge badge-success">{{ item.discount_formatted }} off</span>
+                            {% else %}
+                                <span class="text-muted">No discount</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ item.final_price_formatted }}</strong></td>
+                        <td>
+                            <span class="badge badge-primary">{{ item.times_ordered or 0 }}</span>
+                            {% if item.total_quantity %}
+                                <small class="d-block text-muted">{{ item.total_quantity }} sold</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'success' if item.status == 'active' else 'danger' }}">
+                                {{ item.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-{{ 'concierge-bell' if item_type == 'services' else 'utensils' }} fa-3x text-muted mb-3"></i>
+            <h4>No {{ 'services' if item_type == 'services' else 'menu items' }} found</h4>
+            <p class="text-muted">
+                {% if current_search %}
+                    No items match your search. Try different keywords.
+                {% else %}
+                    No {{ 'services' if item_type == 'services' else 'menu items' }} available.
+                {% endif %}
+            </p>
+            {% if current_search %}
+                <a href="{{ url_for('admin_items', type=item_type) }}" class="btn btn-primary">
+                    Clear Search
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
