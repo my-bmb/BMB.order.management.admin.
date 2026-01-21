@@ -49,92 +49,90 @@
     </div>
 </div>
 
-<div class="row">
-    <!-- Today's Orders -->
-    <div class="col-lg-8">
-        <div class="table-container">
-            <div class="table-header">
-                <h3><i class="fas fa-calendar-day mr-2"></i>Today's Orders</h3>
-                <div class="table-actions">
-                    <a href="{{ url_for('admin_orders') }}" class="btn btn-outline">
-                        View All Orders
-                    </a>
-                </div>
-            </div>
-            
-            {% if todays_orders %}
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Items</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Time</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in todays_orders %}
-                            <tr>
-                                <td><strong>#{{ order.order_id }}</strong></td>
-                                <td>
-                                    <div>
-                                        <strong>{{ order.user_name }}</strong><br>
-                                        <small class="text-muted">{{ order.user_phone }}</small>
-                                    </div>
-                                </td>
-                                <td>{{ order.item_count }} items</td>
-                                <td><strong>{{ format_currency(order.total_amount) }}</strong></td>
-                                <td>
-                                    <span class="badge badge-{{ get_status_badge(order.status) }}">
-                                        {{ order.status }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if order.order_date %}
-                                    <small>{{ format_ist_datetime(order.order_date, "%I:%M %p") }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline view-order-details" 
-                                                data-order-id="{{ order.order_id }}"
-                                                data-toggle="tooltip" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline view-payment-details" 
-                                                data-order-id="{{ order.order_id }}"
-                                                data-toggle="tooltip" title="Payment">
-                                            <i class="fas fa-credit-card"></i>
-                                        </button>
-                                        <button class="btn btn-outline view-customer-details" 
-                                                data-order-id="{{ order.order_id }}"
-                                                data-toggle="tooltip" title="Customer">
-                                            <i class="fas fa-user"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
-                    <h4>No orders today</h4>
-                    <p class="text-muted">No orders have been placed today</p>
-                </div>
-            {% endif %}
+<!-- Today's Orders -->
+<div class="table-container mt-4">
+    <div class="table-header">
+        <h3><i class="fas fa-calendar-day mr-2"></i>Today's Orders</h3>
+        <div class="table-actions">
+            <a href="{{ url_for('admin_orders') }}" class="btn btn-outline">
+                View All Orders
+            </a>
         </div>
     </div>
     
-    <!-- Quick Stats -->
-    <div class="col-lg-4">
-        <div class="table-container mt-4">
+    {% if todays_orders %}
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in todays_orders %}
+                    <tr>
+                        <td><strong>#{{ order.order_id }}</strong></td>
+                        <td>
+                            <div>
+                                <strong>{{ order.user_name }}</strong><br>
+                                <small class="text-muted">{{ order.user_phone }}</small>
+                            </div>
+                        </td>
+                        <td>{{ order.item_count }} items</td>
+                        <td><strong>{{ format_currency(order.total_amount) }}</strong></td>
+                        <td>
+                            <span class="badge badge-{{ get_status_badge(order.status) }}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if order.order_date %}
+                            <small>{{ format_ist_datetime(order.order_date, "%I:%M %p") }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline" 
+                                        onclick="alert('Order Details: #{{ order.order_id }}')"
+                                        data-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline" 
+                                        onclick="alert('Payment Details: #{{ order.order_id }}')"
+                                        data-toggle="tooltip" title="Payment">
+                                    <i class="fas fa-credit-card"></i>
+                                </button>
+                                <button class="btn btn-outline" 
+                                        onclick="alert('Customer Details: {{ order.user_name }}')"
+                                        data-toggle="tooltip" title="Customer">
+                                    <i class="fas fa-user"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+            <h4>No orders today</h4>
+            <p class="text-muted">No orders have been placed today</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="table-container">
             <div class="table-header">
                 <h3><i class="fas fa-chart-line mr-2"></i>Quick Stats</h3>
             </div>
@@ -163,17 +161,20 @@
                 </table>
             </div>
         </div>
-        
-        <div class="table-container mt-4">
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="table-container">
             <div class="table-header">
                 <h3><i class="fas fa-fire mr-2"></i>Top Items Today</h3>
             </div>
             <div class="p-3">
-                {% if stats.top_items %}
+                {% if stats.top_items and stats.top_items|length > 0 %}
                     {% for item in stats.top_items[:5] %}
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
                             <strong>{{ item.item_name[:20] }}{% if item.item_name|length > 20 %}...{% endif %}</strong>
+                            <small class="d-block text-muted">{{ item.item_type }}</small>
                         </div>
                         <div class="text-right">
                             <span class="badge badge-primary">{{ item.total_quantity }} sold</span><br>
@@ -192,26 +193,38 @@
     </div>
 </div>
 
-<!-- Simple Stats -->
+<!-- Admin Actions -->
 <div class="row mt-4">
     <div class="col-lg-12">
         <div class="table-container">
             <div class="table-header">
-                <h3><i class="fas fa-chart-bar mr-2"></i>Today's Overview</h3>
+                <h3><i class="fas fa-rocket mr-2"></i>Quick Actions</h3>
             </div>
             <div class="p-4">
                 <div class="row">
-                    <div class="col-md-4 text-center">
-                        <div class="display-4 text-primary">{{ today_stats.total_orders or 0 }}</div>
-                        <p class="text-muted">Total Orders</p>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('admin_orders') }}" class="btn btn-primary btn-block">
+                            <i class="fas fa-shopping-bag fa-2x mb-2"></i><br>
+                            Manage Orders
+                        </a>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <div class="display-4 text-success">{{ format_currency(today_stats.total_revenue or 0) }}</div>
-                        <p class="text-muted">Total Revenue</p>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('admin_customers') }}" class="btn btn-success btn-block">
+                            <i class="fas fa-users fa-2x mb-2"></i><br>
+                            View Customers
+                        </a>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <div class="display-4 text-info">{{ customer_stats.new_customers or 0 }}</div>
-                        <p class="text-muted">New Customers</p>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('admin_items') }}" class="btn btn-info btn-block">
+                            <i class="fas fa-box fa-2x mb-2"></i><br>
+                            Manage Items
+                        </a>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('admin_statistics') }}" class="btn btn-warning btn-block">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                            View Statistics
+                        </a>
                     </div>
                 </div>
             </div>
