@@ -1,11 +1,9 @@
-# render.yaml - Complete configuration
 services:
   - type: web
     name: bite-me-buddy-admin
     runtime: python
-    region: singapore  # or mumbai, oregon, frankfurt, etc.
-    plan: free  # or starter ($7/month), standard ($25/month)
-    rootDirectory: .  # Current directory
+    region: singapore
+    plan: free
     buildCommand: |
       echo "🚀 Starting build process..."
       pip install --upgrade pip
@@ -41,15 +39,11 @@ services:
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
-        sync: false  # Set manually in dashboard
-    disk:
-      name: uploads
-      mountPath: /opt/render/project/src/static/uploads
-      sizeGB: 1
+        sync: false
 
 databases:
   - name: bite_me_buddy_db
-    plan: free  # or starter, standard
+    plan: free
     databaseName: bite_me_buddy
     user: bite_me_buddy_user
     region: singapore
